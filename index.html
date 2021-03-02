@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Rijndael Encryption</title>
+        <link rel="stylesheet" type="text/css" href="styles/style.css">
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+        <script src="constants.js"></script>
+        <script src="utilities.js"></script>
+        <script src="rijndael.js"></script>
+        <script>
+            var currentmode = "encrypt";
+            
+            function fieldUpdate() {
+                var toCrypt;
+                var fieldContent = $("#inputLeft").val();
+                var inputType = $("#cipherDrop1").val();
+                var outputType = $("#cipherDrop2").val();
+                var keyType = $("#keyType").val();
+                var key = $("#key").val();
+                
+                if (keyType.includes("ASCII")) key = stringToBinary(key);
+                else key = keyFormat(key, keyType);
+                                
+                KeyExpansion(key);
+                
+                if (inputType.includes("Hex")) toCrypt = splitHex(fieldContent);
+                if (inputType.includes("Binary")) toCrypt = splitBin(fieldContent);
+                if (inputType.includes("ASCII")) toCrypt = splitASCII(fieldContent);
+                                
+                var finalOutput = [];
+                if (currentmode == "encrypt") {
+                    for (let i=0; i<toCrypt.length; i++) finalOutput[i] = AES_encrypt(toCrypt[i]);
+                } else {
+                    for (let i=0; i<toCrypt.length; i++) finalOutput[i] = AES_decrypt(toCrypt[i]);
+                }
+                
+                finalOutput = arrayToString(finalOutput);
+                
+                if (outputType.includes("Hex")) finalOutput = hexOutput(finalOutput);
+                if (outputType.includes("Binary")) finalOutput = binOutput(finalOutput);
+                if (outputType.includes("ASCII")) finalOutput = hexToString(finalOutput);
+                
+                $("#inputRight").val(finalOutput);
+            }
+            
+            function switchMode() {
+                var cipherDropContent = "<option>Ciphertext (ASCII)</option><option selected>Ciphertext (Hex)</option><option>Ciphertext (Binary)</option>";
+                var plainDropContent = "<option>Plaintext (ASCII)</option><option>Plaintext (Hex)</option><option>Plaintext (Binary)</option>";
+                
+                var left = document.getElementById("cipherDrop1");
+                var right = $("#cipherDrop2").val();
+                
+                if (currentmode == "encrypt") {
+                    $("#cipherDrop1").html(cipherDropContent);
+                    $("#cipherDrop1").css("color", "#00AA0E");
+                    
+                    $("#cipherDrop2").html(plainDropContent);
+                    $("#cipherDrop2").css("color", "#4089FF");
+                    
+                    currentmode = "decrypt";
+                } else {
+                    $("#cipherDrop1").html(plainDropContent);
+                    $("#cipherDrop1").css("color", "#4089FF");
+                    
+                    $("#cipherDrop2").html(cipherDropContent);
+                    $("#cipherDrop2").css("color", "#00AA0E");
+                    
+                    currentmode = "encrypt";
+                }
+                
+                if (right.includes("ASCII")) left.selectedIndex = "0";
+                if (right.includes("Hex")) left.selectedIndex = "1";
+                if (right.includes("Binary")) left.selectedIndex = "2";
+                
+                $("#inputLeft").val($("#inputRight").val());
+                //$("#inputRight").val(left);
+                
+                fieldUpdate();
+            }
+            
+            function checkKey(key) {
+                var keyType = $("#keyType").val();
+                
+                if ((keyType == "Key (ASCII)") && (key.value.length > 16)) {
+                    key.value = key.value.substring(0, 16);
+                    alert("Maximum key length for 128-bit encryption is 16 characters.")
+                }
+                
+                if ((keyType == "Key (Hex)") && (key.value.length > 47)) {
+                    key.value = key.value.substring(0, 47);
+                    alert("Maximum key length for 128-bit encryption is 16 bytes.")
+                }
+                
+                if ((keyType == "Key (Binary)") && (key.value.length > 143)) {
+                    key.value = key.value.substring(0, 143);
+                    alert("Maximum key length for 128-bit encryption is 16 bytes.")
+                }
+                
+                fieldUpdate();
+            }
+            
+            function randomKey() {
+                var genKey = "";
+                for (let i=0; i<15; i++) genKey += Math.floor(Math.random()*256).toString(16).padStart(2, "0") + " ";
+                // generate 15 random hexadecimal numbers with a space following
+                
+                genKey += Math.floor(Math.random()*256).toString(16).padStart(2, "0");
+                // generate the 16 random hexadecimal without a space
+                
+                document.getElementById("keyType").selectedIndex = "1";
+                $("#key").val(genKey);
+                
+                fieldUpdate();
+            }
+            
+            function changeKeyType() {
+                $("#key").val("");
+                fieldUpdate();
+            }
+        </script>
+    </head>
+    
+    <body onload="fieldUpdate();">
+        <div id="headCont">
+            <div id="header">Advanced Encryption Standard</div>
+            <img id="padlock" src="images/padlock.svg" onclick="location.reload()">
+        </div>
+        <div id="cipherCont">
+            <select id="cipherDrop1" onchange="fieldUpdate()">
+                <option>Plaintext (ASCII)</option>
+                <option>Plaintext (Hex)</option>
+                <option>Plaintext (Binary)</option>
+            </select>
+            
+            <img id="switchImg" onclick="switchMode();" src="images/switch.svg">
+
+            <select id="cipherDrop2" onchange="fieldUpdate()">
+                <option>Ciphertext (ASCII)</option>
+                <option selected>Ciphertext (Hex)</option>
+                <option>Ciphertext (Binary)</option>
+            </select>
+            <div id="cipherHeadLine"></div>
+            <div id="cipherMidLine"></div>
+<textarea id="inputLeft" class="inputField" spellcheck="false" onkeyup="fieldUpdate();">Enter plaintext to encrypt here, or click the switch button to decrypt ciphertext. Enter your 16 character key below. You can use a key less than 16 characters, but it won't be as secure.
+We strongly recommend you don't encrypt to ASCII - many browsers won't be able to read the characters properly and the encryption will fail.</textarea>
+            <textarea readonly id="inputRight" class="inputField" spellcheck="false"></textarea>
+        </div>
+        <div id="keyCont">
+            <select id="keyType" onchange="changeKeyType()">
+                <option>Key (ASCII)</option>
+                <option>Key (Hex)</option>
+                <option>Key (Binary)</option>
+            </select>
+            <div class="tooltip" id="randkeybtn" onclick="randomKey();">R
+                <span class="tooltiptext">Generate random key</span>
+            </div>
+            <input id="key" type="text" onkeyup="checkKey(this);" autocomplete="off" value="Some 16 byte key">
+        </div>
+    </body>
+</html>

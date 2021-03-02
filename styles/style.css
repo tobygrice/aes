@@ -1,0 +1,239 @@
+@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;500&family=Source+Code+Pro:wght@400;500&display=swap');
+/* import Roboto 400, 500 and Source Code Pro 400, 500 */
+
+body {
+    background-color: #F0F0F0;
+    margin: 0;
+}
+
+#headCont {
+    background-color: white;
+    width: calc(100% - 30px);
+    height: 100px;
+    line-height: 100px;
+    padding-left: 30px;
+    border-bottom: 1px solid grey;
+}
+
+#header {
+    font-family: "Roboto";
+    font-weight: 500;
+    font-size: 40px;
+    display: inline-block;
+}
+
+#padlock {
+    position: absolute;
+    height: 75px;
+    right: 20px;
+    top: 10px;
+    transition: 0.1s;
+}
+#padlock:hover {
+    transform: scale(1.05, 1.05);
+}
+
+#cipherCont {
+    width: 85%;
+    height: 350px;;
+    background-color: white;
+    margin: auto;
+    margin-top: 30px;
+    border-radius: 8px;
+    box-shadow: 0px 0px 3px;
+    position: relative;
+}
+
+
+#cipherHeadLine {
+    width: 100%;
+    height: 1px;
+    background-color: grey;
+}
+
+#cipherMidLine {
+    width: 1px;
+    height: 282px;
+    background-color: grey;
+    position: absolute;
+    left: 50%;
+    bottom: 0;
+}
+
+#cipherDrop1 {
+    font-family: "Roboto";
+    font-weight: 500;
+    color: #4089FF;
+    font-size: 35px;
+    background-color: transparent;
+    border: none;
+    margin: 10px;
+    margin-top: 15px;
+    margin-left: 17px;
+    display: inline-block;
+    cursor: pointer;
+}
+
+#switchImg {
+    width: 70px;
+    position: absolute;
+    top: 14px;
+    left: calc(50% - 35px);
+    transition: 0.1s;
+    cursor: pointer;
+}
+
+#switchImg:hover {
+    transform: scale(1.1, 1.1)
+}
+
+#cipherDrop2 {
+    font-family: "Roboto";
+    font-weight: 500;
+    color: #00AA0E;
+    font-size: 35px;
+    background-color: transparent;
+    border: none;
+    margin: 20px;
+    margin-top: 15px;
+    display: inline-block;
+    float: right;
+    cursor: pointer;
+}
+
+
+.inputField {
+    background-color: transparent;
+    font-family: "Source Code Pro";
+    font-size: 20px;
+    resize: none;
+    width: 46%;
+    height: 240px;
+    border: none;
+}
+.inputField:focus {
+    outline: none;
+}
+
+#inputLeft {
+    margin: 12px;
+    margin-left: 20px;
+}
+
+#inputRight {
+    position: absolute;
+    left: calc(50% + 10px);
+    margin: 12px;
+}
+
+
+
+
+
+
+#keyCont {
+    width: 25%;
+    height: 100px;
+    background-color: white;
+    padding: 15px;
+    border-radius: 8px;
+    margin: auto;
+    margin-top: 20px;
+    border-radius: 8px;
+    box-shadow: 0px 0px 3px;
+    position: relative;
+}
+
+#keyType {
+    font-family: "Roboto";
+    font-weight: 500;
+    color: #FF6C6C;
+    font-size: 35px;
+    background-color: transparent;
+    border: none;
+    cursor: pointer;
+}
+
+#key {
+    position: absolute;
+    bottom: 15px;
+    left: 15px;
+    background-color: transparent;
+    border: none;
+    border-bottom: 2px solid grey;
+    font-family: "Source Code Pro";
+    width: calc(100% - 36px);
+    font-size: 25px;
+    padding: 3px;
+    vertical-align: bottom;
+}
+
+#key:focus {
+    outline: none;
+}
+
+#randkeybtn {
+    float: right;
+    display: inline-block;
+    background-color: #bfbfbf;
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    text-align: center;
+    line-height: 40px;
+    font-family: "Roboto";
+    font-weight: 500;
+    font-size: 25px;
+    cursor: pointer;
+    transition: 0.1s;
+}
+#randkeybtn:hover {
+    transform: scale(1.05, 1.05);
+}
+
+
+
+
+
+
+
+
+
+/* W3 SCHOOLS TOOLTIP: RETRIEVED FROM https://www.w3schools.com/css/css_tooltip.asp */ 
+
+.tooltip {
+    position: relative;
+    display: inline-block;
+}
+
+.tooltip .tooltiptext {
+    visibility: hidden;
+    width: 120px;
+    background-color: black;
+    color: #fff;
+    text-align: center;
+    border-radius: 6px;
+    padding: 5px 0;
+    position: absolute;
+    z-index: 1;
+    bottom: 150%;
+    left: 50%;
+    margin-left: -60px;
+    font-size: 15px;
+    line-height: normal;
+}
+
+.tooltip .tooltiptext::after {
+    content: "";
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    margin-left: -5px;
+    border-width: 5px;
+    border-style: solid;
+    border-color: black transparent transparent transparent;
+}
+
+.tooltip:hover .tooltiptext {
+    visibility: visible;
+}
