@@ -60,9 +60,41 @@ pub fn expand_key(key: &[u8]) -> Vec<[[u8; 4]; 4]> {
     round_keys
 }
 
+pub fn add_round_key(state: &mut [[u8; 4]; 4], round_key: &[[u8; 4]; 4]) {
+    for i in 0..4 {
+        state[i] = xor_words(&state[i], &round_key[i]);
+    }
+}
+
+// Multiplication in the Galois finite field GF(2^8)
+// - adapted from https://crypto.stackexchange.com/a/71206
+// - unfortunately, Rust doesn't allow such pretty bit manipulation on u8s,
+//   so the translation is not as clean
+pub fn gf_mul(mut a: u8, mut b: u8) -> u8 {
+    let mut p: u8 = 0;
+    while b > 0 {
+        if (b & 1) != 0 {
+            p ^= a; // add a to p if the lowest bit of b is set
+        }
+
+        // multiply a by 2 in the Galois finite field
+        // overflow -> reduce modulo GF(2^8) polynomial x^8 + x^4 + x^3 + x + 1
+        // ^= 0x1B after shifting
+        let hi = a & 0x80;
+        a <<= 1; // multiply by 2
+        if hi != 0 {
+            a ^= 0x1B; // reduce if overflow
+        }
+
+        b >>= 1;
+    }
+    p
+}
+
 fn xor_words(a: &[u8; 4], b: &[u8; 4]) -> [u8; 4] {
     [a[0] ^ b[0], a[1] ^ b[1], a[2] ^ b[2], a[3] ^ b[3]]
 }
+
 
 #[cfg(test)]
 mod tests {
