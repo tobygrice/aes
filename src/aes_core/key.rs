@@ -1,5 +1,8 @@
 use std::vec;
 
+use rand::TryRngCore;
+use rand::rngs::OsRng;
+
 use super::constants::{RCON, SBOX};
 
 pub fn expand_key(key: &[u8]) -> Vec<[[u8; 4]; 4]> {
@@ -66,33 +69,32 @@ pub fn add_round_key(state: &mut [[u8; 4]; 4], round_key: &[[u8; 4]; 4]) {
     }
 }
 
-// Multiplication in the Galois finite field GF(2^8)
-// - adapted from https://crypto.stackexchange.com/a/71206
-// - unfortunately, Rust doesn't allow such pretty bit manipulation on u8s,
-//   so the translation is not as clean
-pub fn gf_mul(mut a: u8, mut b: u8) -> u8 {
-    let mut p: u8 = 0;
-    while b > 0 {
-        if (b & 1) != 0 {
-            p ^= a; // add a to p if the lowest bit of b is set
-        }
-
-        // multiply a by 2 in the Galois finite field
-        // overflow -> reduce modulo GF(2^8) polynomial x^8 + x^4 + x^3 + x + 1
-        // ^= 0x1B after shifting
-        let hi = a & 0x80;
-        a <<= 1; // multiply by 2
-        if hi != 0 {
-            a ^= 0x1B; // reduce if overflow
-        }
-
-        b >>= 1;
-    }
-    p
-}
-
 fn xor_words(a: &[u8; 4], b: &[u8; 4]) -> [u8; 4] {
     [a[0] ^ b[0], a[1] ^ b[1], a[2] ^ b[2], a[3] ^ b[3]]
+}
+
+pub fn random_key_128() -> [u8; 16] {
+    let mut key = [0u8; 16];
+    OsRng
+        .try_fill_bytes(&mut key)
+        .expect("key generation failed");
+    key
+}
+
+pub fn random_key_192() -> [u8; 24] {
+    let mut key = [0u8; 24];
+    OsRng
+        .try_fill_bytes(&mut key)
+        .expect("key generation failed");
+    key
+}
+
+pub fn random_key_256() -> [u8; 32] {
+    let mut key = [0u8; 32];
+    OsRng
+        .try_fill_bytes(&mut key)
+        .expect("key generation failed");
+    key
 }
 
 
@@ -104,10 +106,8 @@ mod tests {
     fn key_schedule_128() {
         // run key schedule on 128 bit sample key from FIPS-197 Appendix A.1
         let key_128: [u8; 16] = [
-            0x2b, 0x7e, 0x15, 0x16,
-            0x28, 0xae, 0xd2, 0xa6,
-            0xab, 0xf7, 0x15, 0x88,
-            0x09, 0xcf, 0x4f, 0x3c,
+            0x2b, 0x7e, 0x15, 0x16, 0x28, 0xae, 0xd2, 0xa6, 0xab, 0xf7, 0x15, 0x88, 0x09, 0xcf,
+            0x4f, 0x3c,
         ];
 
         let round_keys = expand_key(&key_128);
@@ -128,12 +128,8 @@ mod tests {
     fn key_schedule_192() {
         // run key schedule on 192 bit sample key from FIPS-197 Appendix A.2
         let key_192: [u8; 24] = [
-            0x8e, 0x73, 0xb0, 0xf7,
-            0xda, 0x0e, 0x64, 0x52,
-            0xc8, 0x10, 0xf3, 0x2b,
-            0x80, 0x90, 0x79, 0xe5,
-            0x62, 0xf8, 0xea, 0xd2,
-            0x52, 0x2c, 0x6b, 0x7b,
+            0x8e, 0x73, 0xb0, 0xf7, 0xda, 0x0e, 0x64, 0x52, 0xc8, 0x10, 0xf3, 0x2b, 0x80, 0x90,
+            0x79, 0xe5, 0x62, 0xf8, 0xea, 0xd2, 0x52, 0x2c, 0x6b, 0x7b,
         ];
 
         let round_keys = expand_key(&key_192);
@@ -154,13 +150,8 @@ mod tests {
     fn key_schedule_256() {
         // run key schedule on 256 bit sample key from FIPS-197 Appendix A.3
         let key_256: [u8; 32] = [
-            0x60, 0x3d, 0xeb, 0x10,
-            0x15, 0xca, 0x71, 0xbe,
-            0x2b, 0x73, 0xae, 0xf0,
-            0x85, 0x7d, 0x77, 0x81,
-            0x1f, 0x35, 0x2c, 0x07,
-            0x3b, 0x61, 0x08, 0xd7,
-            0x2d, 0x98, 0x10, 0xa3,
+            0x60, 0x3d, 0xeb, 0x10, 0x15, 0xca, 0x71, 0xbe, 0x2b, 0x73, 0xae, 0xf0, 0x85, 0x7d,
+            0x77, 0x81, 0x1f, 0x35, 0x2c, 0x07, 0x3b, 0x61, 0x08, 0xd7, 0x2d, 0x98, 0x10, 0xa3,
             0x09, 0x14, 0xdf, 0xf4,
         ];
 
@@ -176,5 +167,14 @@ mod tests {
         ];
 
         assert_eq!(last, expected);
+    }
+
+    #[test]
+    fn test_random_key() {
+        for _ in 0..100 {
+            assert_ne!(random_key_128(), random_key_128(), "generated identical 128 bit keys");
+            assert_ne!(random_key_192(), random_key_192(), "generated identical 192 bit keys");
+            assert_ne!(random_key_256(), random_key_256(), "generated identical 256 bit keys");
+        }
     }
 }
