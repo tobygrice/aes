@@ -5,8 +5,6 @@ use rand::TryRngCore;
 
 use super::shared::expand_key;
 
-include!("constants.rs");
-
 pub fn encrypt(plaintext: &[u8], key: Option<&[u8]>) -> Vec<u8> {
     let rand_key;
     let key = match key {

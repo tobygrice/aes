@@ -1,5 +1,3 @@
-use aes::{encrypt, decrypt};
-
 fn main() {
     // worry about CLI later. For now, develop algo.
 
@@ -40,8 +38,8 @@ fn main() {
         0x67, 0x2E, 0x20, 0x42, 0x6F, 0x6F,
     ];
 
-    let ciphertext = encrypt(&plaintext, Some(&key[..]));
-    let decrypted = decrypt(&ciphertext, &key);
+    let ciphertext = aes::encrypt(&plaintext, Some(&key[..]));
+    let decrypted = aes::decrypt(&ciphertext, &key);
 
     println!("{:?}", decrypted);
 }

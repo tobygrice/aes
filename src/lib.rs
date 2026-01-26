@@ -1,3 +1,3 @@
-pub mod aes;
+mod core;
 
-pub use aes::{decrypt, encrypt};
+pub use core::{decrypt, encrypt};
