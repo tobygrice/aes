@@ -1,9 +1,8 @@
 use std::vec;
 
 use super::constants::SBOX;
-use super::key::{expand_key, add_round_key};
+use super::key::{add_round_key, expand_key};
 use super::util::{blockify, gf_mul};
-
 
 // start with ECB chaining
 pub fn encrypt(plaintext: &[u8], key: &[u8]) -> Vec<u8> {
@@ -22,7 +21,7 @@ pub fn encrypt(plaintext: &[u8], key: &[u8]) -> Vec<u8> {
     ciphertext
 }
 
-fn encrypt_block(plaintext: &[[u8; 4]; 4], round_keys: &[[[u8; 4]; 4]]) -> [[u8; 4]; 4] {
+pub(crate) fn encrypt_block(plaintext: &[[u8; 4]; 4], round_keys: &[[[u8; 4]; 4]]) -> [[u8; 4]; 4] {
     let mut state = plaintext.clone();
     let num_rounds = round_keys.len();
 
@@ -42,7 +41,7 @@ fn encrypt_block(plaintext: &[[u8; 4]; 4], round_keys: &[[[u8; 4]; 4]]) -> [[u8;
     state
 }
 
-fn sub_bytes(state: &mut [[u8; 4]; 4]) {
+pub(crate) fn sub_bytes(state: &mut [[u8; 4]; 4]) {
     for word in state {
         for byte in word {
             *byte = SBOX[*byte as usize];
@@ -50,7 +49,7 @@ fn sub_bytes(state: &mut [[u8; 4]; 4]) {
     }
 }
 
-fn shift_rows(state: &mut [[u8; 4]; 4]) {
+pub(crate) fn shift_rows(state: &mut [[u8; 4]; 4]) {
     let s = *state;
     *state = [
         [s[0][0], s[1][1], s[2][2], s[3][3]],
@@ -60,7 +59,7 @@ fn shift_rows(state: &mut [[u8; 4]; 4]) {
     ];
 }
 
-fn mix_columns(state: &mut [[u8; 4]; 4]) {
+pub(crate) fn mix_columns(state: &mut [[u8; 4]; 4]) {
     for word in state {
         let a = *word; // make temp copy of word
         word[0] = gf_mul(2, a[0]) ^ gf_mul(3, a[1]) ^ a[2] ^ a[3];
@@ -69,9 +68,6 @@ fn mix_columns(state: &mut [[u8; 4]; 4]) {
         word[3] = gf_mul(3, a[0]) ^ a[1] ^ a[2] ^ gf_mul(2, a[3]);
     }
 }
-
-
-
 
 #[cfg(test)]
 mod tests {
