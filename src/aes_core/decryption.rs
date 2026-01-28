@@ -2,11 +2,11 @@ use std::vec;
 
 use super::constants::SBOX_INV;
 use super::key::{add_round_key, expand_key};
-use super::util::{blockify, gf_mul};
+use super::util::{blockify, unpad, gf_mul};
 
 pub fn decrypt(ciphertext: &[u8], key: &[u8]) -> Vec<u8> {
     let round_keys = expand_key(&key);
-    let ciphertext = blockify(&ciphertext);
+    let ciphertext = blockify(ciphertext.to_vec());
 
     let mut plaintext: Vec<u8> = vec![];
     for block in ciphertext {
@@ -17,7 +17,7 @@ pub fn decrypt(ciphertext: &[u8], key: &[u8]) -> Vec<u8> {
         plaintext.append(&mut dec_block);
     }
 
-    plaintext
+    unpad(&plaintext)
 }
 
 fn decrypt_block(plaintext: &[[u8; 4]; 4], round_keys: &[[[u8; 4]; 4]]) -> [[u8; 4]; 4] {

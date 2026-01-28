@@ -2,7 +2,7 @@
 // - adapted from https://crypto.stackexchange.com/a/71206
 // - unfortunately, Rust doesn't allow such pretty bit manipulation on u8s,
 //   so the translation is not as clean
-pub fn gf_mul(mut a: u8, mut b: u8) -> u8 {
+pub(crate) fn gf_mul(mut a: u8, mut b: u8) -> u8 {
     let mut p: u8 = 0;
     while b > 0 {
         if (b & 1) != 0 {
@@ -23,16 +23,40 @@ pub fn gf_mul(mut a: u8, mut b: u8) -> u8 {
     p
 }
 
-// this function was written with assistance of an LLM
-pub fn blockify(plaintext: &[u8]) -> Vec<[[u8; 4]; 4]> {
-    let mut buf = plaintext.to_vec();
-
+pub(crate) fn pad(plaintext: &[u8]) -> Vec<u8> {
     // PKCS#7: pad with number of elems to pad
-    let pad = 16 - (buf.len() % 16);
-    buf.extend(std::iter::repeat(pad as u8).take(pad));
+    let mut res = plaintext.to_vec();
+    let pad_value = 16 - (plaintext.len() % 16);
+
+    res.extend(std::iter::repeat(pad_value as u8).take(pad_value));
+
+    res
+}
+
+pub(crate) fn unpad(plaintext: &[u8]) -> Vec<u8> {
+    // PKCS#7: pad with number of elems to pad
+    let mut res = plaintext.to_vec();
+    let pad_value: usize = match res.last() {
+        Some(v) => *v as usize,
+        None => 0,
+    };
+
+    res.truncate(res.len() - pad_value);
+
+    res
+}
+
+// this function was written with assistance of an LLM
+pub(crate) fn blockify(plaintext: Vec<u8>) -> Vec<[[u8; 4]; 4]> {
+    assert_eq!(
+        plaintext.len() % 16,
+        0,
+        "Attempted to blockify an input not divisible by 16."
+    );
 
     // better not to use unwrap() ?
-    buf.chunks_exact(16)
+    plaintext
+        .chunks_exact(16)
         .map(|c| {
             [
                 c[0..4].try_into().unwrap(),
@@ -49,7 +73,34 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_blockify_formatting() {
+    fn test_padding() {
+        let plaintext: [u8; 20] = [
+            0x6B, 0xC1, 0xBE, 0xE2, //
+            0x2E, 0x40, 0x9F, 0x96, //
+            0xE9, 0x3D, 0x7E, 0x11, //
+            0x73, 0x93, 0x17, 0x2A, //
+            0xAE, 0x2D, 0x8A, 0x57, //
+        ];
+
+        let padded: Vec<u8> = vec![
+            0x6B, 0xC1, 0xBE, 0xE2, //
+            0x2E, 0x40, 0x9F, 0x96, //
+            0xE9, 0x3D, 0x7E, 0x11, //
+            0x73, 0x93, 0x17, 0x2A, //
+            0xAE, 0x2D, 0x8A, 0x57, //
+            0x0C, 0x0C, 0x0C, 0x0C, //
+            0x0C, 0x0C, 0x0C, 0x0C, //
+            0x0C, 0x0C, 0x0C, 0x0C, //
+        ];
+
+        let actual1 = pad(&plaintext);
+        assert_eq!(actual1, padded, "plaintext padded incorrectly");
+        let actual2 = unpad(&actual1);
+        assert_eq!(actual2, plaintext, "plaintext unpadded incorrectly");
+    }
+
+    #[test]
+    fn test_blockify() {
         // 20 bytes -> pads to 32 bytes, so 2 blocks/states.
         let plaintext: [u8; 20] = [
             0x6B, 0xC1, 0xBE, 0xE2, //
@@ -81,8 +132,10 @@ mod tests {
             [0x06, 0x06, 0x06, 0x06],
         ]];
 
-        let actual1 = blockify(&plaintext);
-        let actual2 = blockify(&plaintext[..10]);
+        let padded1 = pad(&plaintext);
+        let padded2 = pad(&plaintext[..10]);
+        let actual1 = blockify(padded1);
+        let actual2 = blockify(padded2);
 
         assert_eq!(actual1, expected1);
         assert_eq!(actual2, expected2);

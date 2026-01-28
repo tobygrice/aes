@@ -2,12 +2,12 @@ use std::vec;
 
 use super::constants::SBOX;
 use super::key::{add_round_key, expand_key};
-use super::util::{blockify, gf_mul};
+use super::util::{blockify, pad, gf_mul};
 
 // start with ECB chaining
 pub fn encrypt(plaintext: &[u8], key: &[u8]) -> Vec<u8> {
     let round_keys = expand_key(&key);
-    let plaintext = blockify(&plaintext);
+    let plaintext = blockify(pad(plaintext));
 
     let mut ciphertext: Vec<u8> = vec![];
     for block in plaintext {
