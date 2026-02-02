@@ -7,7 +7,7 @@ USAGE:
 COMMANDS:
     encrypt     Encrypt input to output
     decrypt     Decrypt input to output
-    help        Print help message
+    help        Print this message
 
 OPTIONS (COMMON):
     -i, --input <PATH>      Input file path. Use '-' to read from stdin
@@ -17,6 +17,9 @@ OPTIONS (COMMON):
                             Additional options exist for generation (see below)
 
 KEY GENERATION OPTIONS (ENCRYPTION ONLY):
-	--generate-key          Generate a random 256 bit key
-                            Will be written to PATH specified after -k / --key
+	--generate-key          Generate a random key
+                            Will be written to PATH specified after -k or --key
+	--key-size <BITS>       Only valid with --generate-key
+                            Generate a key of size BITS
+							BITS can be 128, 192, or 256. Default: 256
 ```

@@ -1,38 +1,39 @@
+mod args;
+
+use args::{Cli, Commands};
+use clap::Parser;
+
 fn main() {
-    // worry about CLI later. For now, develop algo.
+    let args = Cli::parse();
 
-    // to-do: parse/pad input
+    match args.command {
+        Commands::Encrypt(enc) => {
+            // common args:
+            let input = enc.common.input;
+            let output = enc.common.output;
+            let key = enc.common.key;
 
-    // Test inputs. Key is randomly generated, plaintext is readable ASCII.
-    // key = 9f b6 78 eb bb 43 9e 76 d9 97 ff 2b ac 85 03 23 bf 2e 1c 87 d0 67 03 5f 31 17 d4 75 36 cf 17 70
+            // encrypt-only args:
+            let key_gen = enc.generate_key;
+            let key_size = enc.key_size;
 
-    let key = aes::random_key_256();
+            println!("encrypt: {input:?} -> {output:?}, key={key:?}, key_gen={key_gen}, size={key_size:?}");
+        }
+        Commands::Decrypt(common) => {
+            let input = common.input;
+            let output = common.output;
+            let key = common.key;
 
-    let plaintext: [u8; 92] = [
-        0x59, 0x6F, 0x75, 0x27, 0x76, 0x65, 0x20, 0x64, //
-        0x6F, 0x6E, 0x65, 0x20, 0x69, 0x74, 0x2E, 0x20, //
-
-        0x59, 0x6F, 0x75, 0x27, 0x76, 0x65, 0x20, 0x69, //
-        0x6D, 0x70, 0x6C, 0x65, 0x6D, 0x65, 0x6E, 0x74, //
-
-        0x65, 0x64, 0x20, 0x41, 0x45, 0x53, 0x20, 0x69, //
-        0x6E, 0x20, 0x52, 0x75, 0x73, 0x74, 0x2C, 0x20, //
-
-        0x79, 0x6F, 0x75, 0x20, 0x62, 0x65, 0x61, 0x73, //
-        0x74, 0x2E, 0x20, 0x4D, 0x75, 0x6C, 0x74, 0x69, //
-
-        0x70, 0x6C, 0x65, 0x20, 0x6F, 0x66, 0x20, 0x31, //
-        0x36, 0x20, 0x62, 0x79, 0x74, 0x65, 0x73, 0x20, //
-
-        0x66, 0x6F, 0x72, 0x20, 0x74, 0x65, 0x73, 0x74, //
-        0x69, 0x6E, 0x67, 0x2E,  //
-    ];
-
-    let enc = aes::encrypt(&plaintext, &key);
-    let dec = aes::decrypt(&enc, &key);
-
-    //let s = String::from_utf8(decrypted).expect("Our bytes should be valid utf8");
-
-    // println!("{}", s);
-    println!("{:02X?}", dec);
+            println!("decrypt: {input:?} -> {output:?}, key={key:?}");
+        }
+    }
 }
+
+// #[derive(Parser)]
+// #[command(version, about, author)]
+// struct Cli {
+//     #[arg(short = 'i', long = "input")]
+//     input: String,
+//     #[arg(short = 'o', long = "output")]
+//     output: String,
+// }

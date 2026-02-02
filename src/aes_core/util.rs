@@ -51,7 +51,7 @@ pub(crate) fn blockify(plaintext: Vec<u8>) -> Vec<[[u8; 4]; 4]> {
     assert_eq!(
         plaintext.len() % 16,
         0,
-        "Attempted to blockify an input not divisible by 16."
+        "Attempted to blockify a vector that is not divisible by 16."
     );
 
     // better not to use unwrap() ?
@@ -95,6 +95,7 @@ mod tests {
 
         let actual1 = pad(&plaintext);
         assert_eq!(actual1, padded, "plaintext padded incorrectly");
+        
         let actual2 = unpad(&actual1);
         assert_eq!(actual2, plaintext, "plaintext unpadded incorrectly");
     }
