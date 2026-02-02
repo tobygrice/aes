@@ -4,9 +4,8 @@ use args::{Cli, Commands, KeySize};
 use clap::Parser;
 
 use std::fs;
-use std::error::Error;
 
-fn main() -> Result<(), Box<dyn Error>> {
+fn main() {
     let args = Cli::parse();
 
     match args.command {
@@ -23,19 +22,19 @@ fn main() -> Result<(), Box<dyn Error>> {
                     KeySize::Bits192 => aes::random_key_192(),
                     KeySize::Bits256 => aes::random_key_256(),
                 };
-                fs::write(key_path, &rand_key)?;
+                fs::write(key_path, &rand_key).expect("Failed to write key.");
                 rand_key
             } else {
                 // read key from key_path
-                fs::read(key_path)?
+                fs::read(key_path).expect("Failed to read key.")
             };
 
             // read plaintext from input_path
-            let plaintext = fs::read(input_path)?;
+            let plaintext = fs::read(input_path).expect("Failed to read input.");
 
             // encrypt plaintext and write output
             let ciphertext = aes::encrypt(&plaintext, &key);
-            fs::write(output_path, &ciphertext)?;
+            fs::write(output_path, &ciphertext).expect("Failed to write output.");
         }
         Commands::Decrypt(common) => {
             let input_path = &common.input;
@@ -43,15 +42,14 @@ fn main() -> Result<(), Box<dyn Error>> {
             let key_path = &common.key;
 
             // read inputs
-            let key = fs::read(key_path)?;
-            let ciphertext = fs::read(input_path)?;
+            let key = fs::read(key_path).expect("Failed to read key.");
+            let ciphertext = fs::read(input_path).expect("Failed to read input.");
 
             // decrypt ciphertext and write output
             let plaintext = aes::decrypt(&ciphertext, &key);
-            fs::write(output_path, &plaintext)?;
+            fs::write(output_path, &plaintext).expect("Failed to write output.");
         }
     }
-    Ok(())
 }
 
 // #[derive(Parser)]
