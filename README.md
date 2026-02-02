@@ -1,11 +1,11 @@
 # AES in Rust
 ## About
 Planned features:
- [x] AES encryption and decryption in ECB mode
- [x] CLI using clap, supporting random key generation for encryption
- [ ] library error passing using thiserror
- [ ] stream cipher using counter mode (CTR)
- [ ] Galois counter mode (GCM)
+- [x] AES encryption and decryption in ECB mode
+- [x] CLI using clap, supporting random key generation for encryption
+- [ ] library error passing using thiserror
+- [ ] stream cipher using counter mode (CTR)
+- [ ] Galois counter mode (GCM)
 
 ## Usage
 ```
