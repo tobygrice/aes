@@ -21,15 +21,15 @@ pub enum Commands {
 #[derive(Args, Debug)]
 #[command(arg_required_else_help = true)]
 pub struct CommonArgs {
-    /// Input file path. Use '-' to read from stdin
+    /// Input file path.
     #[arg(short = 'i', long = "input")]
     pub input: PathBuf,
 
-    /// Output file path. Use '-' to write to stdout
+    /// Output file path.
     #[arg(short = 'o', long = "output")]
     pub output: PathBuf,
 
-    /// Key file path. Use '-' for stdin/stdout (inferred from COMMAND)
+    /// Key file path.
     #[arg(short = 'k', long = "key")]
     pub key: PathBuf,
 }

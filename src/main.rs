@@ -1,32 +1,57 @@
 mod args;
 
-use args::{Cli, Commands};
+use args::{Cli, Commands, KeySize};
 use clap::Parser;
 
-fn main() {
+use std::fs;
+use std::error::Error;
+
+fn main() -> Result<(), Box<dyn Error>> {
     let args = Cli::parse();
 
     match args.command {
         Commands::Encrypt(enc) => {
             // common args:
-            let input = enc.common.input;
-            let output = enc.common.output;
-            let key = enc.common.key;
+            let input_path = &enc.common.input;
+            let output_path = &enc.common.output;
+            let key_path = &enc.common.key;
 
-            // encrypt-only args:
-            let key_gen = enc.generate_key;
-            let key_size = enc.key_size;
+            // read or generate key
+            let key = if enc.generate_key {
+                let rand_key = match enc.key_size {
+                    KeySize::Bits128 => aes::random_key_128(),
+                    KeySize::Bits192 => aes::random_key_192(),
+                    KeySize::Bits256 => aes::random_key_256(),
+                };
+                fs::write(key_path, &rand_key)?;
+                rand_key
+            } else {
+                // read key from key_path
+                fs::read(key_path)?
+            };
 
-            println!("encrypt: {input:?} -> {output:?}, key={key:?}, key_gen={key_gen}, size={key_size:?}");
+            // read plaintext from input_path
+            let plaintext = fs::read(input_path)?;
+
+            // encrypt plaintext and write output
+            let ciphertext = aes::encrypt(&plaintext, &key);
+            fs::write(output_path, &ciphertext)?;
         }
         Commands::Decrypt(common) => {
-            let input = common.input;
-            let output = common.output;
-            let key = common.key;
+            let input_path = &common.input;
+            let output_path = &common.output;
+            let key_path = &common.key;
 
-            println!("decrypt: {input:?} -> {output:?}, key={key:?}");
+            // read inputs
+            let key = fs::read(key_path)?;
+            let ciphertext = fs::read(input_path)?;
+
+            // decrypt ciphertext and write output
+            let plaintext = aes::decrypt(&ciphertext, &key);
+            fs::write(output_path, &plaintext)?;
         }
     }
+    Ok(())
 }
 
 // #[derive(Parser)]
