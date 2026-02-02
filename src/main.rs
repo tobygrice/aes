@@ -15,6 +15,9 @@ fn main() {
             let output_path = &enc.common.output;
             let key_path = &enc.common.key;
 
+            // read plaintext from input_path
+            let plaintext = fs::read(input_path).expect("Failed to read input");
+
             // read or generate key
             let key = if enc.generate_key {
                 let rand_key = match enc.key_size {
@@ -22,19 +25,16 @@ fn main() {
                     KeySize::Bits192 => aes::random_key_192(),
                     KeySize::Bits256 => aes::random_key_256(),
                 };
-                fs::write(key_path, &rand_key).expect("Failed to write key.");
+                fs::write(key_path, &rand_key).expect("Failed to write key");
                 rand_key
             } else {
                 // read key from key_path
-                fs::read(key_path).expect("Failed to read key.")
+                fs::read(key_path).expect("Failed to read key")
             };
-
-            // read plaintext from input_path
-            let plaintext = fs::read(input_path).expect("Failed to read input.");
 
             // encrypt plaintext and write output
             let ciphertext = aes::encrypt(&plaintext, &key);
-            fs::write(output_path, &ciphertext).expect("Failed to write output.");
+            fs::write(output_path, &ciphertext).expect("Failed to write output");
         }
         Commands::Decrypt(common) => {
             let input_path = &common.input;
@@ -42,12 +42,12 @@ fn main() {
             let key_path = &common.key;
 
             // read inputs
-            let key = fs::read(key_path).expect("Failed to read key.");
-            let ciphertext = fs::read(input_path).expect("Failed to read input.");
+            let ciphertext = fs::read(input_path).expect("Failed to read input");
+            let key = fs::read(key_path).expect("Failed to read key");
 
             // decrypt ciphertext and write output
             let plaintext = aes::decrypt(&ciphertext, &key);
-            fs::write(output_path, &plaintext).expect("Failed to write output.");
+            fs::write(output_path, &plaintext).expect("Failed to write output");
         }
     }
 }
