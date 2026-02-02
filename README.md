@@ -1,25 +1,42 @@
 # AES encryption/decryption tool.
 ## Usage
 ```
-USAGE:
-    aes <COMMAND> [OPTIONS]
+Usage: aes.exe <COMMAND>
 
-COMMANDS:
-    encrypt     Encrypt input to output
-    decrypt     Decrypt input to output
-    help        Print this message
+Commands:
+  encrypt  Encrypt input to output
+  decrypt  Decrypt input to output
+  help     Print this message or the help of the given subcommand(s)
 
-OPTIONS (COMMON):
-    -i, --input <PATH>      Input file path. Use '-' to read from stdin
-    -o, --output <PATH>     Output file path. Use '-' to write to stdout
-	-k, --key <PATH>        Key file path. 
-                            Use '-' for stdin/stdout (inferred from COMMAND)
-                            Additional options exist for generation (see below)
+Options:
+  -h, --help     Print help
+  -V, --version  Print version
+```
 
-KEY GENERATION OPTIONS (ENCRYPTION ONLY):
-	--generate-key          Generate a random key
-                            Will be written to PATH specified after -k or --key
-	--key-size <BITS>       Only valid with --generate-key
-                            Generate a key of size BITS
-							BITS can be 128, 192, or 256. Default: 256
+### Encryption
+```
+Encrypt input to output
+
+Usage: aes.exe encrypt [OPTIONS] --input <INPUT> --output <OUTPUT> --key <KEY>
+
+Options:
+  -i, --input <INPUT>        Input file path
+  -o, --output <OUTPUT>      Output file path
+  -k, --key <KEY>            Key file path
+      --generate-key         Generate a random key (written to path specified by key)
+      --key-size <KEY_SIZE>  Only valid with --generate-key [default: 256] [possible values: 128, 192, 256]
+  -h, --help                 Print help
+```
+
+### Decryption
+```
+Decrypt input to output
+
+Usage: aes.exe decrypt --input <INPUT> --output <OUTPUT> --key <KEY>
+
+Options:
+  -i, --input <INPUT>    Input file path
+  -o, --output <OUTPUT>  Output file path
+  -k, --key <KEY>        Key file path
+  -h, --help             Print help
 ```
