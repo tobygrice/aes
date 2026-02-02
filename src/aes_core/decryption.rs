@@ -1,12 +1,13 @@
 use std::vec;
 
+use super::error::Result;
 use super::constants::SBOX_INV;
 use super::key::{add_round_key, expand_key};
 use super::util::{blockify, unpad, gf_mul};
 
-pub fn decrypt(ciphertext: &[u8], key: &[u8]) -> Vec<u8> {
-    let round_keys = expand_key(&key);
-    let ciphertext = blockify(ciphertext.to_vec());
+pub fn decrypt(ciphertext: &[u8], key: &[u8]) -> Result<Vec<u8>> {
+    let round_keys = expand_key(&key)?;
+    let ciphertext = blockify(ciphertext.to_vec())?;
 
     let mut plaintext: Vec<u8> = vec![];
     for block in ciphertext {
@@ -17,7 +18,8 @@ pub fn decrypt(ciphertext: &[u8], key: &[u8]) -> Vec<u8> {
         plaintext.append(&mut dec_block);
     }
 
-    unpad(&plaintext)
+    unpad(&plaintext);
+    Ok(plaintext)
 }
 
 fn decrypt_block(plaintext: &[[u8; 4]; 4], round_keys: &[[[u8; 4]; 4]]) -> [[u8; 4]; 4] {
@@ -131,7 +133,7 @@ mod tests {
     }
 
     #[test]
-    fn test_decrypt_block() {
+    fn test_decrypt_block() -> Result<()> {
         let key: [u8; 32] = [
             0x60, 0x3D, 0xEB, 0x10, 0x15, 0xCA, 0x71, 0xBE, //
             0x2B, 0x73, 0xAE, 0xF0, 0x85, 0x7D, 0x77, 0x81, //
@@ -145,13 +147,15 @@ mod tests {
             [0x73, 0x93, 0x17, 0x2A],
         ];
 
-        let round_keys = expand_key(&key);
+        let round_keys = expand_key(&key)?;
         let actual = encryption::encrypt_block(&plaintext, &round_keys);
         let actual = decryption::decrypt_block(&actual, &round_keys);
 
         assert_eq!(
             actual, plaintext,
             "decrypt block does not exactly reverse encrypt block"
-        )
+        );
+
+        Ok(())
     }
 }

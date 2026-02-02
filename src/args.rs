@@ -1,6 +1,10 @@
 use clap::{Args, Parser, Subcommand, ValueEnum};
 use std::path::PathBuf;
 
+/** 
+ * Argument parser using clap 
+ */
+
 #[derive(Parser, Debug)]
 #[command(version, about, author, arg_required_else_help = true)]
 pub struct Cli {
@@ -42,15 +46,15 @@ pub struct EncryptArgs {
     pub common: CommonArgs,
 
     /// Generate a random key (written to path specified by key)
-    #[arg(long = "generate-key")]
-    pub generate_key: bool,
+    #[arg(long = "gen-key")]
+    pub gen_key: bool,
 
-    /// Only valid with --generate-key.
+    /// Only valid with --gen-key.
     #[arg(
         long = "key-size",
         value_enum,
         default_value_t = KeySize::Bits256,
-        requires = "generate_key"
+        requires = "gen_key"
     )]
     pub key_size: KeySize,
 }

@@ -1,3 +1,5 @@
+use super::error::{Error, Result};
+
 // Multiplication in the Galois finite field GF(2^8)
 // - adapted from https://crypto.stackexchange.com/a/71206
 // - unfortunately, Rust doesn't allow such pretty bit manipulation on u8s,
@@ -47,25 +49,22 @@ pub(crate) fn unpad(plaintext: &[u8]) -> Vec<u8> {
 }
 
 // this function was written with assistance of an LLM
-pub(crate) fn blockify(plaintext: Vec<u8>) -> Vec<[[u8; 4]; 4]> {
-    assert_eq!(
-        plaintext.len() % 16,
-        0,
-        "Attempted to blockify a vector that is not divisible by 16."
-    );
+pub(crate) fn blockify(plaintext: Vec<u8>) -> Result<Vec<[[u8; 4]; 4]>> {
+    if plaintext.len() % 16 != 0 {
+        return Err(Error::InvalidCiphertext);
+    }
 
-    // better not to use unwrap() ?
-    plaintext
+    Ok(plaintext
         .chunks_exact(16)
         .map(|c| {
             [
-                c[0..4].try_into().unwrap(),
-                c[4..8].try_into().unwrap(),
-                c[8..12].try_into().unwrap(),
-                c[12..16].try_into().unwrap(),
+                [c[00], c[01], c[02], c[03]],
+                [c[04], c[05], c[06], c[07]],
+                [c[08], c[09], c[10], c[11]],
+                [c[12], c[13], c[14], c[15]],
             ]
         })
-        .collect()
+        .collect())
 }
 
 #[cfg(test)]
@@ -95,13 +94,13 @@ mod tests {
 
         let actual1 = pad(&plaintext);
         assert_eq!(actual1, padded, "plaintext padded incorrectly");
-        
+
         let actual2 = unpad(&actual1);
         assert_eq!(actual2, plaintext, "plaintext unpadded incorrectly");
     }
 
     #[test]
-    fn test_blockify() {
+    fn test_blockify() -> Result<()> {
         // 20 bytes -> pads to 32 bytes, so 2 blocks/states.
         let plaintext: [u8; 20] = [
             0x6B, 0xC1, 0xBE, 0xE2, //
@@ -135,10 +134,12 @@ mod tests {
 
         let padded1 = pad(&plaintext);
         let padded2 = pad(&plaintext[..10]);
-        let actual1 = blockify(padded1);
-        let actual2 = blockify(padded2);
+        let actual1 = blockify(padded1)?;
+        let actual2 = blockify(padded2)?;
 
         assert_eq!(actual1, expected1);
         assert_eq!(actual2, expected2);
+
+        Ok(())
     }
 }

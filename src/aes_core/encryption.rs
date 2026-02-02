@@ -1,13 +1,14 @@
 use std::vec;
 
+use super::error::Result;
 use super::constants::SBOX;
 use super::key::{add_round_key, expand_key};
 use super::util::{blockify, pad, gf_mul};
 
 // start with ECB chaining
-pub fn encrypt(plaintext: &[u8], key: &[u8]) -> Vec<u8> {
-    let round_keys = expand_key(&key);
-    let plaintext = blockify(pad(plaintext));
+pub fn encrypt(plaintext: &[u8], key: &[u8]) -> Result<Vec<u8>> {
+    let round_keys = expand_key(&key)?;
+    let plaintext = blockify(pad(plaintext))?;
 
     let mut ciphertext: Vec<u8> = vec![];
     for block in plaintext {
@@ -18,7 +19,7 @@ pub fn encrypt(plaintext: &[u8], key: &[u8]) -> Vec<u8> {
         ciphertext.append(&mut enc_block);
     }
 
-    ciphertext
+    Ok(ciphertext)
 }
 
 pub(crate) fn encrypt_block(plaintext: &[[u8; 4]; 4], round_keys: &[[[u8; 4]; 4]]) -> [[u8; 4]; 4] {
@@ -115,7 +116,7 @@ mod tests {
     }
 
     #[test]
-    fn test_encrypt_block_256() {
+    fn test_encrypt_block_256() -> Result<()> {
         // test case from:
         // https://csrc.nist.gov/CSRC/media/Projects/Cryptographic-Standards-and-Guidelines/documents/examples/AES_Core256.pdf
         let key: [u8; 32] = [
@@ -137,14 +138,16 @@ mod tests {
             [0x3D, 0xB1, 0x81, 0xF8],
         ];
 
-        let round_keys = expand_key(&key);
+        let round_keys = expand_key(&key)?;
         let actual = encrypt_block(&plaintext, &round_keys);
 
         assert_eq!(actual, expected, "incorrect AES-256 encryption of block");
+
+        Ok(())
     }
 
     #[test]
-    fn test_encrypt_block_192() {
+    fn test_encrypt_block_192() -> Result<()> {
         // test case from:
         // https://csrc.nist.gov/CSRC/media/Projects/Cryptographic-Standards-and-Guidelines/documents/examples/AES_Core192.pdf
         let key: [u8; 24] = [
@@ -167,14 +170,16 @@ mod tests {
             [0x57, 0x1F, 0xA5, 0xCC],
         ];
 
-        let round_keys = expand_key(&key);
+        let round_keys = expand_key(&key)?;
         let actual = encrypt_block(&plaintext, &round_keys);
 
         assert_eq!(actual, expected, "incorrect AES-192 encryption of block");
+
+        Ok(())
     }
 
     #[test]
-    fn test_encrypt_block_128() {
+    fn test_encrypt_block_128() -> Result<()> {
         // test case from:
         // https://csrc.nist.gov/CSRC/media/Projects/Cryptographic-Standards-and-Guidelines/documents/examples/AES_Core128.pdf
         let key: [u8; 16] = [
@@ -196,14 +201,16 @@ mod tests {
             [0x24, 0x66, 0xEF, 0x97],
         ];
 
-        let round_keys = expand_key(&key);
+        let round_keys = expand_key(&key)?;
         let actual = encrypt_block(&plaintext, &round_keys);
 
         assert_eq!(actual, expected, "incorrect AES-128 encryption of block");
+
+        Ok(())
     }
 
     #[test]
-    fn test_encrypt_256() {
+    fn test_encrypt_256() -> Result<()> {
         // test case from:
         // // test case from:
         // https://csrc.nist.gov/CSRC/media/Projects/Cryptographic-Standards-and-Guidelines/documents/examples/AES_Core256.pdf
@@ -236,11 +243,13 @@ mod tests {
             0x50, 0x88, 0xBC, 0xCC, 0x9D, 0xEF, 0x97, 0xB1, //
         ];
 
-        let actual = encrypt(&plaintext, &key);
+        let actual = encrypt(&plaintext, &key)?;
 
         assert_eq!(
             actual, expected,
             "incorrect AES-256 encryption of 58 bytes of plaintext"
         );
+
+        Ok(())
     }
 }

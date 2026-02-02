@@ -3,7 +3,7 @@
 Planned features:
 - [x] AES encryption and decryption in ECB mode with PKCS#7 padding
 - [x] CLI using clap, supporting random key generation for encryption
-- [ ] Library error passing using thiserror
+- [ ] Library error handling using `thiserror` crate
 - [ ] Stream cipher using counter mode (CTR)
 - [ ] Galois counter mode (GCM)
 
@@ -31,8 +31,8 @@ Options:
   -i, --input <INPUT>        Input file path
   -o, --output <OUTPUT>      Output file path
   -k, --key <KEY>            Key file path
-      --generate-key         Generate a random key (written to path specified by key)
-      --key-size <KEY_SIZE>  Only valid with --generate-key [default: 256] [possible values: 128, 192, 256]
+      --gen-key              Generate a random key (written to path specified by key)
+      --key-size <KEY_SIZE>  Only valid with --gen-key [default: 256] [possible values: 128, 192, 256]
   -h, --help                 Print help
 ```
 

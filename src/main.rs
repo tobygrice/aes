@@ -6,6 +6,13 @@ use clap::Parser;
 use std::fs;
 
 fn main() {
+    if let Err(e) = aes_cli() {
+        eprintln!("error: {e}");
+        std::process::exit(1);
+    }
+}
+
+fn aes_cli() -> aes::Result<()> {
     let args = Cli::parse();
 
     match args.command {
@@ -19,7 +26,7 @@ fn main() {
             let plaintext = fs::read(input_path).expect("Failed to read input");
 
             // read or generate key
-            let key = if enc.generate_key {
+            let key = if enc.gen_key {
                 let rand_key = match enc.key_size {
                     KeySize::Bits128 => aes::random_key_128(),
                     KeySize::Bits192 => aes::random_key_192(),
@@ -33,8 +40,9 @@ fn main() {
             };
 
             // encrypt plaintext and write output
-            let ciphertext = aes::encrypt(&plaintext, &key);
+            let ciphertext = aes::encrypt(&plaintext, &key)?;
             fs::write(output_path, &ciphertext).expect("Failed to write output");
+            Ok(())
         }
         Commands::Decrypt(common) => {
             let input_path = &common.input;
@@ -46,17 +54,9 @@ fn main() {
             let key = fs::read(key_path).expect("Failed to read key");
 
             // decrypt ciphertext and write output
-            let plaintext = aes::decrypt(&ciphertext, &key);
+            let plaintext = aes::decrypt(&ciphertext, &key)?;
             fs::write(output_path, &plaintext).expect("Failed to write output");
+            Ok(())
         }
     }
 }
-
-// #[derive(Parser)]
-// #[command(version, about, author)]
-// struct Cli {
-//     #[arg(short = 'i', long = "input")]
-//     input: String,
-//     #[arg(short = 'o', long = "output")]
-//     output: String,
-// }

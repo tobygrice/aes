@@ -4,8 +4,9 @@ use rand::TryRngCore;
 use rand::rngs::OsRng;
 
 use super::constants::{RCON, SBOX};
+use super::error::{Error, Result};
 
-pub fn expand_key(key: &[u8]) -> Vec<[[u8; 4]; 4]> {
+pub fn expand_key(key: &[u8]) -> Result<Vec<[[u8; 4]; 4]>> {
     // Variable names match FIPS-197, NIST specification: https://doi.org/10.6028/NIST.FIPS.197-upd1
     // Nk   The number of 32-bit words comprising the key
     // Nr   The number of rounds. 10, 12, and 14 for AES-128, AES-192, and AES-256, respectively
@@ -16,10 +17,10 @@ pub fn expand_key(key: &[u8]) -> Vec<[[u8; 4]; 4]> {
     let nr = nk + 6; // number of rounds = num of words in key + 6
     let nw = (nr + 1) * 4; // total number of words resulting from expansion
 
-    assert!(
-        matches!(nk, 4 | 6 | 8),
-        "Key must be 128, 192, or 256 bits."
-    );
+    match key.len() {
+        16 | 24 | 32 => {}
+        n => return Err(Error::InvalidKeyLength { len: n }),
+    }
 
     // initialise w, flat vector comprising words of round_keys
     let mut w: Vec<[u8; 4]> = vec![[0u8; 4]; nw];
@@ -60,7 +61,7 @@ pub fn expand_key(key: &[u8]) -> Vec<[[u8; 4]; 4]> {
     for i in 0..nw {
         round_keys[i / 4][i % 4] = w[i];
     }
-    round_keys
+    Ok(round_keys)
 }
 
 pub fn add_round_key(state: &mut [[u8; 4]; 4], round_key: &[[u8; 4]; 4]) {
@@ -97,20 +98,19 @@ pub fn random_key_256() -> Vec<u8> {
     key
 }
 
-
 #[cfg(test)]
 mod tests {
     use super::*;
 
     #[test]
-    fn key_schedule_128() {
+    fn key_schedule_128() -> Result<()> {
         // run key schedule on 128 bit sample key from FIPS-197 Appendix A.1
         let key_128: [u8; 16] = [
             0x2b, 0x7e, 0x15, 0x16, 0x28, 0xae, 0xd2, 0xa6, 0xab, 0xf7, 0x15, 0x88, 0x09, 0xcf,
             0x4f, 0x3c,
         ];
 
-        let round_keys = expand_key(&key_128);
+        let round_keys = expand_key(&key_128)?;
         let last = *round_keys.last().expect("round_keys should not be empty");
 
         // compare with last round key of sample schedule in A.1
@@ -122,17 +122,19 @@ mod tests {
         ];
 
         assert_eq!(last, expected);
+
+        Ok(())
     }
 
     #[test]
-    fn key_schedule_192() {
+    fn key_schedule_192() -> Result<()> {
         // run key schedule on 192 bit sample key from FIPS-197 Appendix A.2
         let key_192: [u8; 24] = [
             0x8e, 0x73, 0xb0, 0xf7, 0xda, 0x0e, 0x64, 0x52, 0xc8, 0x10, 0xf3, 0x2b, 0x80, 0x90,
             0x79, 0xe5, 0x62, 0xf8, 0xea, 0xd2, 0x52, 0x2c, 0x6b, 0x7b,
         ];
 
-        let round_keys = expand_key(&key_192);
+        let round_keys = expand_key(&key_192)?;
         let last = *round_keys.last().expect("round_keys should not be empty");
 
         // compare with last round key of sample schedule in A.2
@@ -144,10 +146,12 @@ mod tests {
         ];
 
         assert_eq!(last, expected);
+
+        Ok(())
     }
 
     #[test]
-    fn key_schedule_256() {
+    fn key_schedule_256() -> Result<()> {
         // run key schedule on 256 bit sample key from FIPS-197 Appendix A.3
         let key_256: [u8; 32] = [
             0x60, 0x3d, 0xeb, 0x10, 0x15, 0xca, 0x71, 0xbe, 0x2b, 0x73, 0xae, 0xf0, 0x85, 0x7d,
@@ -155,7 +159,7 @@ mod tests {
             0x09, 0x14, 0xdf, 0xf4,
         ];
 
-        let round_keys = expand_key(&key_256);
+        let round_keys = expand_key(&key_256)?;
         let last = *round_keys.last().expect("round_keys should not be empty");
 
         // compare with last round key of sample schedule in A.3
@@ -167,14 +171,28 @@ mod tests {
         ];
 
         assert_eq!(last, expected);
+
+        Ok(())
     }
 
     #[test]
     fn test_random_key() {
         for _ in 0..100 {
-            assert_ne!(random_key_128(), random_key_128(), "generated identical 128 bit keys");
-            assert_ne!(random_key_192(), random_key_192(), "generated identical 192 bit keys");
-            assert_ne!(random_key_256(), random_key_256(), "generated identical 256 bit keys");
+            assert_ne!(
+                random_key_128(),
+                random_key_128(),
+                "generated identical 128 bit keys"
+            );
+            assert_ne!(
+                random_key_192(),
+                random_key_192(),
+                "generated identical 192 bit keys"
+            );
+            assert_ne!(
+                random_key_256(),
+                random_key_256(),
+                "generated identical 256 bit keys"
+            );
         }
     }
 }
