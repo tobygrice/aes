@@ -7,5 +7,5 @@ mod error;
 
 pub use encryption::encrypt;
 pub use decryption::decrypt;
-pub use key::{random_key_128, random_key_192, random_key_256};
+pub use key::{random_key, KeySize};
 pub use error::{Error, Result};

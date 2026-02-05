@@ -3,9 +3,10 @@
 Planned features:
 - [x] AES encryption and decryption in ECB mode with PKCS#7 padding
 - [x] CLI using clap, supporting random key generation for encryption
-- [x] Library error handling using `thiserror` crate
-- [ ] Stream cipher using counter mode (CTR)
+- [x] Robust library error handling using `thiserror` crate
+- [ ] Counter mode of operation (CTR)
 - [ ] Galois counter mode (GCM)
+- [ ] Encryption and decryption in parallel
 
 ## Usage
 ```

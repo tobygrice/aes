@@ -51,7 +51,7 @@ pub(crate) fn unpad(plaintext: &[u8]) -> Vec<u8> {
 // this function was written with assistance of an LLM
 pub(crate) fn blockify(plaintext: Vec<u8>) -> Result<Vec<[[u8; 4]; 4]>> {
     if plaintext.len() % 16 != 0 {
-        return Err(Error::InvalidCiphertext);
+        return Err(Error::InvalidCiphertext { len: plaintext.len() });
     }
 
     Ok(plaintext

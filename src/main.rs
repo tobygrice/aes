@@ -28,9 +28,9 @@ fn aes_cli() -> aes::Result<()> {
             // read or generate key
             let key = if enc.gen_key {
                 let rand_key = match enc.key_size {
-                    KeySize::Bits128 => aes::random_key_128(),
-                    KeySize::Bits192 => aes::random_key_192(),
-                    KeySize::Bits256 => aes::random_key_256(),
+                    KeySize::Bits128 => aes::random_key(aes::KeySize::Bits128)?,
+                    KeySize::Bits192 => aes::random_key(aes::KeySize::Bits192)?,
+                    KeySize::Bits256 => aes::random_key(aes::KeySize::Bits256)?,
                 };
                 fs::write(key_path, &rand_key).expect("Failed to write key");
                 rand_key
